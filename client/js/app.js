@@ -34,12 +34,9 @@ $(document).ready(function(){
 
     geocoder.geocode(geocoderRequest, function(results, status) {
       if (status === google.maps.GeocoderStatus.OK) {
-        var latLngArray = [
-          +results[0].geometry.location.lat(),
-          +results[0].geometry.location.lng()
-        ];
-
-        deferred.resolve(latLngArray);
+        var latLngObj = results[0].geometry.location;
+        
+        deferred.resolve(latLngObj);
       } else {
         deferred.reject("Google geocode was not successful for the following reason: " + status);
       }
@@ -50,10 +47,9 @@ $(document).ready(function(){
 
   // Pass in string with place query and array of lat/long coordinates, 
   // return promise with Google Places results array
-  var getPlaces = function(placeQuery, latLngCoords) {
+  var getPlaces = function(placeQuery, latLngObj) {
     var deferred = $.Deferred();
-
-    var location = new google.maps.LatLng(latLngCoords[0],latLngCoords[1]);
+    var location = new google.maps.LatLng(latLngObj.lat(), latLngObj.lng());
 
     var request = {
       location: location,
@@ -90,6 +86,8 @@ $(document).ready(function(){
     var $placesSection = $('#places-text-results');
     $placesSection.empty();
 
+    $('#search-title').removeClass('no-search').text('Search Results');
+
     for (var i = 0; i < places.length; i++) {
       var place = places[i];
       var $entry = createPlaceEntry(place);
@@ -97,6 +95,12 @@ $(document).ready(function(){
     }
   };
 
+  var renderSearchError = function(places) {
+    var $placesSection = $('#places-text-results');
+    $placesSection.empty();
+
+    $('#search-title').addClass('no-search').text('No Places Found');
+  };
 
   $('#places-form').submit(function(event) {
     event.preventDefault();
@@ -104,12 +108,18 @@ $(document).ready(function(){
     var placeQuery = $(this).closest('form').find('input').eq(0).val();
     var locationQuery = $(this).closest('form').find('input').eq(1).val();
 
-    getLocationCoordinates(locationQuery).then(function(latLngCoords) {
-      return getPlaces(placeQuery, latLngCoords);
+    getLocationCoordinates(locationQuery)
+    .then(function(latLngObj) {
+      // Successfully received coordinates
+      return getPlaces(placeQuery, latLngObj);
     }).then(function(places) {
-      // console.log(places);
-      $('#search-title').removeClass('no-search').text('Search Results');
+      console.log(places);
+      // Successfully received places
       renderPlaces(places);
+    }).fail(function(status) {
+      // Failed to receive places
+      console.log(status);
+      renderSearchError();
     });
   });
 
