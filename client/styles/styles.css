@@ -74,3 +74,7 @@ body{
 .place-text {
   margin-left: 60px;
 }
+
+.info-window {
+  width: 160px;
+}

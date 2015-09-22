@@ -73,7 +73,17 @@ $(document).ready(function(){
         url: '/'
       });
 
+      var contentString = '<div class="info-window">' +
+                            '<h6>' + place.name + '</h6>' + 
+                            '<div>' + place.formatted_address + '</div>' +
+                          '</div>';
+
+      var infoWindow = new google.maps.InfoWindow({
+        content: contentString
+      });
+
       marker.setMap(map);
+      marker.addListener('click', showInfoWindow.bind(null, infoWindow, marker));
       markers.push(marker);
     }
   };
@@ -84,6 +94,10 @@ $(document).ready(function(){
       markers[i].setMap(null);
     }
     markers = [];
+  };
+
+  var showInfoWindow = function(infoWindow, marker) {
+    infoWindow.open(map, marker);
   };
 
   var createPlaceEntry = function(place) {
