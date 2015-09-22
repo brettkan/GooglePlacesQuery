@@ -1,8 +1,6 @@
 # Google Places Query App
 
-Simple jQuery application for searching the Google Places API.
-
-## Development Environment Setup
+Simple jQuery application for searching the Google Places API.  Enter search terms in the input fields in the navbar.  When entering a place (e.g. Tadich Grill, restaurants, bars, etc.) and a location (e.g. 240 California St, San Francisco, etc.), the application will search for matches within a large radius around your specified location.  The map will also populate with the applicable map markers, which can be clicked to see location name and address.
 
 ### Requirements
 
