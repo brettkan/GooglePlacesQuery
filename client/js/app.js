@@ -2,6 +2,7 @@ $(document).ready(function(){
   var map;
   var geocoder;
   var service;
+  var markers = [];
 
   // Initialize Google Maps map with geocoder and places service
   var initialize = function() {
@@ -13,15 +14,8 @@ $(document).ready(function(){
       zoom: 12
     };
     
-    // var marker = new google.maps.Marker({
-    //   position: latlng,
-    //   url: '/',
-    //   animation: google.maps.Animation.DROP
-    // });
-    
     geocoder = new google.maps.Geocoder();
     map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
-    // marker.setMap(map);
   };
 
   // Pass in string with location query and returns promise with lat/long coordinates array
@@ -35,7 +29,7 @@ $(document).ready(function(){
     geocoder.geocode(geocoderRequest, function(results, status) {
       if (status === google.maps.GeocoderStatus.OK) {
         var latLngObj = results[0].geometry.location;
-        
+
         deferred.resolve(latLngObj);
       } else {
         deferred.reject("Google geocode was not successful for the following reason: " + status);
@@ -70,6 +64,28 @@ $(document).ready(function(){
     return deferred.promise();
   };
 
+  var addMapMarkers = function(places) {
+    for (var i = 0; i < places.length; i++) {
+      var place = places[i];
+
+      var marker = new google.maps.Marker({
+        position: place.geometry.location,
+        url: '/'
+      });
+
+      marker.setMap(map);
+      markers.push(marker);
+    }
+  };
+
+  var removeMapMarkers = function() {
+    for (var i = 0; i < markers.length; i++) {
+      var marker = markers[i];
+      markers[i].setMap(null);
+    }
+    markers = [];
+  };
+
   var createPlaceEntry = function(place) {
     var $entry = $('<li class="list-group-item menu-item"></li>');
 
@@ -82,7 +98,7 @@ $(document).ready(function(){
     return $entry;
   };
 
-  var renderPlaces = function(places) {
+  var renderPlacesList = function(places) {
     var $placesSection = $('#places-text-results');
     $placesSection.empty();
 
@@ -102,6 +118,7 @@ $(document).ready(function(){
     $('#search-title').addClass('no-search').text('No Places Found');
   };
 
+  // submit listener for places search
   $('#places-form').submit(function(event) {
     event.preventDefault();
 
@@ -111,11 +128,14 @@ $(document).ready(function(){
     getLocationCoordinates(locationQuery)
     .then(function(latLngObj) {
       // Successfully received coordinates
+      map.setCenter(latLngObj);
       return getPlaces(placeQuery, latLngObj);
     }).then(function(places) {
       console.log(places);
       // Successfully received places
-      renderPlaces(places);
+      removeMapMarkers();
+      addMapMarkers(places);
+      renderPlacesList(places);
     }).fail(function(status) {
       // Failed to receive places
       console.log(status);
